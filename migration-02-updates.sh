@@ -35,12 +35,12 @@ git commit -m "gitignore: add declarations from gitignore.io" .gitignore
 
 echo "Moving DBCSR to exts/dbcsr as a Git submodule"
 
-mkdir exts
+mkdir -p exts
 git submodule add https://github.com/cp2k/dbcsr.git exts/dbcsr
 git rm -r src/dbcsr
 
 for f in makefiles/Makefile exts/{Makefile.inc,README.md} ; do
-    wget "https://github.com/alazzaro/cp2k/blob/master/cp2k/${f}" -O "${f}"
+    wget "https://raw.githubusercontent.com/alazzaro/cp2k/master/cp2k/${f}" -O "${f}"
     git add "${f}"
 done
 
