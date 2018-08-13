@@ -7,8 +7,7 @@ set -o pipefail
 #SVN_REPO_URI="http://svn.code.sf.net/p/cp2k/code"
 SVN_REPO_URI="https://svn.cp2k.org/cp2k/"
 
-SVN_CLONE_EXTRA_ARGS=""
-SVN_CLONE_EXTRA_ARGS="-r18000:HEAD"
+SVN_CLONE_EXTRA_ARGS="${SVN_CLONE_EXTRA_ARGS:-}"
 
 remove_backup_refs() {
     echo "Removing backup refs from filter-branch operations..."
