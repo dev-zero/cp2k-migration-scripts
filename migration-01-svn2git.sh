@@ -86,7 +86,7 @@ echo "Creating support branches based on old SVN branches..."
 git for-each-ref --format='%(refname) %(objectname)' refs/remotes/origin/* | while read name ref; do
     if [[ $name =~ refs/remotes/origin/cp2k-([^\-]*)-branch ]] ; then
         version="${BASH_REMATCH[1]}"
-        git branch support/"${version//_/.}" "${ref}"
+        git branch support/"v${version//_/.}" "${ref}"
     fi
 done
 
