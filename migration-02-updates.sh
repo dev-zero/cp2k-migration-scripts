@@ -6,12 +6,10 @@ set -o pipefail
 
 GITIGNORE_IO_CONF="python,fortran,c,c++,cuda,emacs,vim"
 
-pushd cp2k-repo >/dev/null
+update_gitignore() {
+    echo "Updating .gitignore..."
 
-echo "Update .gitignore..."
-
-cat > .gitignore << EOF
-
+    cat > .gitignore << EOF
 # base directory structure
 exe/
 lib/
@@ -28,22 +26,30 @@ arch/local*
 
 EOF
 
-git commit -m "gitignore: ignore .svnignore and local arch files" .gitignore
+    git commit -m "gitignore: ignore .svnignore and local arch files" .gitignore
 
-curl -L -s "https://www.gitignore.io/api/${GITIGNORE_IO_CONF}" >> .gitignore
-git commit -m "gitignore: add declarations from gitignore.io" .gitignore
+    curl -L -s "https://www.gitignore.io/api/${GITIGNORE_IO_CONF}" >> .gitignore
+    git commit -m "gitignore: add declarations from gitignore.io" .gitignore
+}
 
-echo "Moving DBCSR to exts/dbcsr as a Git submodule"
+dbcsr_submodule() {
+    echo "Moving DBCSR to exts/dbcsr as a Git submodule"
 
-mkdir -p exts
-git submodule add https://github.com/cp2k/dbcsr.git exts/dbcsr
-git rm -r src/dbcsr
+    mkdir -p exts
+    git submodule add https://github.com/cp2k/dbcsr.git exts/dbcsr
+    git rm -r src/dbcsr
 
-for f in makefiles/Makefile exts/{Makefile.inc,README.md} ; do
-    wget "https://raw.githubusercontent.com/alazzaro/cp2k/master/cp2k/${f}" -O "${f}"
-    git add "${f}"
-done
+    for f in makefiles/Makefile exts/{Makefile.inc,README.md} ; do
+        wget "https://raw.githubusercontent.com/alazzaro/cp2k/master/cp2k/${f}" -O "${f}"
+        git add "${f}"
+    done
 
-git commit --author='Alfio Lazzaro <alfio.lazzaro@chem.uzh.ch>' -m "DBCSR: include as git submodule"
+    git commit --author='Alfio Lazzaro <alfio.lazzaro@chem.uzh.ch>' -m "DBCSR: include as git submodule"
+}
+
+pushd cp2k-repo >/dev/null
+
+update_gitignore
+# dbcsr_submodule
 
 popd >/dev/null
