@@ -32,6 +32,14 @@ EOF
     git commit -m "gitignore: add declarations from gitignore.io" .gitignore
 }
 
+move_makefile() {
+    patch -p2  < ../0001-Move-Makefile-into-root-dir.patch
+    git rm makefiles/Makefile
+    git add Makefile
+    git add tools/regtesting/do_regtest
+    git commit --author='Ole Schuett <ole.schuett@cp2k.org>' -m "Move Makefile into root directory."
+}
+
 dbcsr_submodule() {
     echo "Moving DBCSR to exts/dbcsr as a Git submodule"
 
@@ -50,6 +58,7 @@ dbcsr_submodule() {
 pushd cp2k-repo >/dev/null
 
 update_gitignore
+move_makefile
 # dbcsr_submodule
 
 popd >/dev/null
