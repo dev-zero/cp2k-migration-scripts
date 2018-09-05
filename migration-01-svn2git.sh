@@ -10,8 +10,14 @@ SVN_REPO_URI="https://svn.cp2k.org/cp2k/"
 SVN_CLONE_EXTRA_ARGS="${SVN_CLONE_EXTRA_ARGS:-}"
 
 remove_backup_refs() {
+    if ! git for-each-ref --format='%(refname)' | grep -qP '^refs/before-[^/]+/' ; then
+        echo "No backup refs from filter-branch operations to clean"
+        return
+    fi
+
     echo "Removing backup refs from filter-branch operations..."
     git for-each-ref --format='%(refname)' | grep -P '^refs/before-[^/]+/' | while read ref; do
+        echo "... ${ref}"
         git update-ref -d "${ref}"
     done
 }
