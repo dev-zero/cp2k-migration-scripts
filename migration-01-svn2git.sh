@@ -39,6 +39,19 @@ drop_empty_commits() {
         -- --all
 }
 
+rewrite_metadata() {
+    # replace
+    #   git-svn-id: https://svn.cp2k.org/cp2k/trunk/cp2k@99 1386f098-2b67-4aea-b2cd-7d6cf3cfa199
+    # with
+    #   svn-origin-rev: 99
+
+    echo "Reformatting SVN metadata..."
+    git filter-branch \
+        --msg-filter 'sed -Ee "s|^git-svn-id:.+@([0-9]+) .+|svn-origin-rev: \1|"' \
+        --original refs/before-rewrite_metadata \
+        -- --all
+}
+
 # Create a Git repository as a clone of the Subversion repo
 # --trunk/--branches/--tags:
 #   Since the trunk contains multiple directories of which only the cp2k/ directory
@@ -54,13 +67,15 @@ git svn clone \
     --trunk=trunk/cp2k \
     --branches=branches/*/cp2k \
     --tags=tags/*/cp2k \
-    --no-metadata \
     --authors-file=authors.txt \
      ${SVN_CLONE_EXTRA_ARGS} "${SVN_REPO_URI}" cp2k-repo
 
 pushd cp2k-repo >/dev/null
 
 drop_empty_commits
+remove_backup_refs
+
+rewrite_metadata
 remove_backup_refs
 
 echo "Retroactively rename .svnignore to .gitignore"
@@ -110,7 +125,6 @@ echo "Clone the repo again, but only for the data..."
 git svn clone \
     --trunk=trunk \
     --include-paths="^trunk/(basis_sets|potentials)/" \
-    --no-metadata \
     --authors-file=authors.txt \
      ${SVN_CLONE_EXTRA_ARGS} "${SVN_REPO_URI}" cp2k-data-repo
 
@@ -118,6 +132,9 @@ pushd cp2k-data-repo >/dev/null
 
 # and again drop the empty commits
 drop_empty_commits
+remove_backup_refs
+
+rewrite_metadata
 remove_backup_refs
 
 echo "Garbage collecting the leftovers..."
