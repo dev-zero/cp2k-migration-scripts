@@ -1,0 +1,128 @@
+From c8280a0720e378b92103cd60325dab2d3b54aeb5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ole=20Sch=C3=BCtt?= <ole.schuett@cp2k.org>
+Date: Tue, 2 Oct 2018 14:08:00 +0200
+Subject: [PATCH] Move Makefile into root directory
+
+---
+ makefiles/Makefile => Makefile            | 10 +++-------
+ tools/conventions/test_conventions.sh     |  2 +-
+ tools/create_dbcsr_tarball.sh             |  3 +--
+ tools/formatting/test_formatting.sh       |  2 --
+ tools/regtesting/do_regtest               |  6 +++---
+ tools/toolchain/install_cp2k_toolchain.sh |  2 +-
+ 6 files changed, 9 insertions(+), 16 deletions(-)
+ rename makefiles/Makefile => Makefile (98%)
+
+diff --git a/makefiles/Makefile b/Makefile
+similarity index 98%
+rename from makefiles/Makefile
+rename to Makefile
+index 7cd35e3da..1e89e3959 100644
+--- a/makefiles/Makefile
++++ b/Makefile
+@@ -5,16 +5,12 @@
+ #
+ SHELL = /bin/sh
+ #
+-# the home dir is taken from the current directory: you must cd to the makefiles
+-# directory before executing make.
+-# adding a symbolic link from the src directory to the Makefile in makefiles/
+-# also works fine
+-#
+-CP2KHOME     := $(abspath $(PWD)/..)
++# the home dir is taken from the current directory.
++CP2KHOME     := $(abspath $(PWD))
+ ARCH         := local
+ export VERSION=sopt
+ 
+-MAKEFILE     := $(CP2KHOME)/makefiles/Makefile
++MAKEFILE     := $(CP2KHOME)/Makefile
+ DOXYGENDIR   := $(CP2KHOME)/doc/doxygen
+ DATA_DIR     := $(CP2KHOME)/data
+ MAINEXEDIR   := $(CP2KHOME)/exe
+diff --git a/tools/conventions/test_conventions.sh b/tools/conventions/test_conventions.sh
+index dd972eb55..f528b100a 100755
+--- a/tools/conventions/test_conventions.sh
++++ b/tools/conventions/test_conventions.sh
+@@ -8,7 +8,7 @@ date --utc --rfc-3339=seconds
+ 
+ (
+   set -e # abort if error is encountered
+-  cd ../../makefiles
++  cd ../../
+   make -j ARCH=Linux-x86-64-gfortran VERSION="dumpast" > make_conventions1.out
+   make -j ARCH=local_warn            VERSION="psmp"    > make_conventions2.out
+ )
+diff --git a/tools/create_dbcsr_tarball.sh b/tools/create_dbcsr_tarball.sh
+index 4de486dbd..37140d9e3 100755
+--- a/tools/create_dbcsr_tarball.sh
++++ b/tools/create_dbcsr_tarball.sh
+@@ -65,8 +65,7 @@ rsync -axq \
+    --exclude="*.mod" \
+    ../tools/build_libsmm/  $OUTDIR/tools/build_libsmm/
+ 
+-mkdir $OUTDIR/makefiles
+-cp -a ../makefiles/Makefile  $OUTDIR/makefiles/
++cp -a ../Makefile  $OUTDIR/
+ 
+ mkdir $OUTDIR/arch/
+ rsync -axq --exclude=".*" ../arch/  $OUTDIR/arch/
+diff --git a/tools/formatting/test_formatting.sh b/tools/formatting/test_formatting.sh
+index 53d95e1dd..a6bc16eac 100755
+--- a/tools/formatting/test_formatting.sh
++++ b/tools/formatting/test_formatting.sh
+@@ -9,10 +9,8 @@ rm -rf preprettify
+ find ./src/ -type f -not -path "*/preprettify/*" -not -path "*/.svn/*" -print0 | xargs -0 md5sum > checksums.md5
+ md5sum ./data/POTENTIAL >> checksums.md5
+ 
+-cd makefiles
+ make --jobs=20 pretty
+ make --jobs=20 pretty  # run twice to ensure consistency with doxify
+-cd ..
+ 
+ cd data
+ cat GTH_POTENTIALS HF_POTENTIALS NLCC_POTENTIALS ALL_POTENTIALS > POTENTIAL
+diff --git a/tools/regtesting/do_regtest b/tools/regtesting/do_regtest
+index a7aab26d3..ba2de1948 100755
+--- a/tools/regtesting/do_regtest
++++ b/tools/regtesting/do_regtest
+@@ -776,7 +776,7 @@ if svn info ${repo_dir} &>/dev/null; then
+          echo "Creating ChangeLog file for the first time. This may take a while ..."
+          ${repo_dir}/tools/svn2cl/svn2cl.sh -i -o ${changelog}
+       fi
+-      for d in src data makefiles tests tools; do
++      for d in src data tests tools; do
+          echo "Updating $d ..."
+          if [ -z "$svnver" ]; then
+             svn update -r {${svndate}} $d &>${svn_out}
+@@ -876,7 +876,7 @@ fi
+ 
+ # make realclean
+ if [[ ${quick} != "quick" ]]; then
+-   cd ${dir_base}/${cp2k_dir}/makefiles
++   cd ${dir_base}/${cp2k_dir}
+    ${make} realclean ${ARCH_SPEC} VERSION=${cp2k_version} >>${make_out} 2>&1
+    if (( $? )); then
+       echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" >>${error_description_file}
+@@ -897,7 +897,7 @@ if [[ ${nobuild} != "nobuild" ]]; then
+    echo "--------------------------- ARCH-file ------------------------------------"
+    cat ${dir_base}/${cp2k_dir}/arch/${ARCH}.${cp2k_version}
+    echo "-------------------------- Build-Tools -----------------------------------"
+-   cd ${dir_base}/${cp2k_dir}/makefiles
++   cd ${dir_base}/${cp2k_dir}
+    ${make} toolversions ${ARCH_SPEC} VERSION=${cp2k_version}
+    echo "---------------------------- Modules -------------------------------------"
+    if [ "`type -t module`" = 'function' ]; then
+diff --git a/tools/toolchain/install_cp2k_toolchain.sh b/tools/toolchain/install_cp2k_toolchain.sh
+index 3c3a8b223..5a94c6afa 100755
+--- a/tools/toolchain/install_cp2k_toolchain.sh
++++ b/tools/toolchain/install_cp2k_toolchain.sh
+@@ -1071,7 +1071,7 @@ To use the installed tools and libraries and cp2k version
+ compiled with it you will first need to execute at the prompt:
+   source ${SETUPFILE}
+ To build CP2K you should change directory:
+-  cd cp2k/makefiles/
++  cd cp2k/
+   make -j ${NPROCS} ARCH=local VERSION="${arch_vers}"
+ 
+ arch files for GPU enabled CUDA versions are named "local_cuda.*"

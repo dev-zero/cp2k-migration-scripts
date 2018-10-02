@@ -53,6 +53,6 @@ update_gitignore
 # dbcsr_submodule
 
 # apply patches on top
-git am ../patches
+git am ../patches/*
 
 popd >/dev/null
