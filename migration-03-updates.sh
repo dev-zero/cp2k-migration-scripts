@@ -52,4 +52,7 @@ pushd cp2k-repo >/dev/null
 update_gitignore
 # dbcsr_submodule
 
+# apply patches on top
+git am ../patches
+
 popd >/dev/null
